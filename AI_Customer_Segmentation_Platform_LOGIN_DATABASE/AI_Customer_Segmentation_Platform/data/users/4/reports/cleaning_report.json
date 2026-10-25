@@ -1,0 +1,22 @@
+{
+    "status": "completed",
+    "before": {
+        "rows": 20,
+        "columns": 12,
+        "missing_values": 0,
+        "duplicate_rows": 0
+    },
+    "cleaning_actions": {
+        "duplicate_rows_removed": 0,
+        "numerical_missing_values_filled": 0,
+        "categorical_missing_values_filled": 0,
+        "outliers_detected": 0
+    },
+    "outlier_details": {},
+    "after": {
+        "rows": 20,
+        "columns": 12,
+        "missing_values": 0,
+        "duplicate_rows": 0
+    }
+}

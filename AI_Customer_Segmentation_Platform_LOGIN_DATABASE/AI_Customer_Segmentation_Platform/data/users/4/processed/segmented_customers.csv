@@ -1,0 +1,21 @@
+Cust_ID,Customer Name,Sex,Item Name,Category,Quantity,Unit Price,Total_Amount,Order_Date,Order ID,Channel,Order_Status,CustomerSegment
+M001,Asha Rao,Female,Rice 5kg,Groceries,2,520,1040,2026-08-02,OFF1001,Offline,Completed,3
+M002,Rahul Das,Male,Cooking Oil,Groceries,1,180,180,2026-08-05,OFF1002,Shop,Completed,1
+M003,Meera Shah,Female,Rice 5kg,Groceries,1,520,520,2026-08-08,OFF1003,In-store,Completed,5
+M001,Asha Rao,Female,Tea Powder,Beverages,3,140,420,2026-08-20,OFF1004,Offline,Completed,6
+M004,Vikram Patil,Male,Cooking Oil,Groceries,2,180,360,2026-09-01,OFF1005,Offline,Completed,4
+M002,Rahul Das,Male,Rice 5kg,Groceries,1,520,520,2026-09-10,OFF1006,Shop,Completed,5
+M005,Nisha Khan,Female,Tea Powder,Beverages,2,140,280,2026-09-18,OFF1007,Offline,Completed,4
+M003,Meera Shah,Female,Cooking Oil,Groceries,1,180,180,2026-09-22,OFF1008,In-store,Completed,1
+M006,Arjun Nair,Male,Rice 5kg,Groceries,1,520,520,2026-09-28,OFF1009,Offline,Completed,5
+M007,Priya Sen,Female,Tea Powder,Beverages,1,140,140,2026-10-01,OFF1010,Shop,Completed,1
+M101,Ananya Iyer,Female,Wireless Earbuds,Electronics,1,1499,1499,2026-08-03,ON2001,Online,Delivered,2
+M102,Karan Mehta,Male,Phone Case,Accessories,2,299,598,2026-08-06,ON2002,Online,Cancelled,4
+M103,Sara Ali,Female,Wireless Earbuds,Electronics,1,1499,1499,2026-08-12,ON2003,Online,Pending,2
+M101,Ananya Iyer,Female,Phone Case,Accessories,1,299,299,2026-08-25,ON2004,Online,Delivered,1
+M104,Dev Joshi,Male,USB-C Charger,Electronics,2,799,1598,2026-09-02,ON2005,Online,Processing,3
+M105,Ritu Bose,Female,Wireless Earbuds,Electronics,1,1499,1499,2026-09-10,ON2006,Online,Delivered,2
+M102,Karan Mehta,Male,Phone Case,Accessories,1,299,299,2026-09-16,ON2007,Online,Cancelled,1
+M106,Ishaan Roy,Male,Wireless Earbuds,Electronics,1,1499,1499,2026-09-25,ON2008,Online,Delivered,2
+M103,Sara Ali,Female,USB-C Charger,Electronics,1,799,799,2026-10-01,ON2009,Online,Pending,5
+M107,Maya Kapoor,Female,Phone Case,Accessories,3,299,897,2026-10-04,ON2010,Online,Delivered,6

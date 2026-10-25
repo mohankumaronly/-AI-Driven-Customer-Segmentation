@@ -1,0 +1,35 @@
+LOGIN, SQLITE DATABASE, AND PROJECT HISTORY
+===========================================
+
+WHAT WAS ADDED
+- Login page and account registration.
+- Passwords are stored as secure hashes, not plain text.
+- Session-based access protection for the dashboard and project API routes.
+- SQLite database for user accounts, uploaded-dataset metadata, and activity history.
+- My History page showing uploads, cleaning, and segmentation activity.
+- User-specific upload, processed, and report folders to keep each account's project files separate.
+- Log out button on the dashboard and history page.
+
+HOW TO START
+1. Extract the ZIP file.
+2. Open the AI_Customer_Segmentation_Platform folder.
+3. Double-click run_project.bat and allow it to install the required packages on first run.
+4. Open http://127.0.0.1:5000 in your browser.
+5. Choose Create account and enter your name, email, and a password of at least 8 characters.
+6. You will be redirected to the dashboard. Upload a dataset and use the existing AI workflow.
+7. Select My History to view recent project activity.
+8. Use Log out to end the session.
+
+DATABASE
+- SQLite file: data/app_database.sqlite3 (created automatically when the app starts)
+- users table: account name, email, password hash, and account creation date
+- datasets table: upload metadata and file path for each user's uploaded dataset
+- activity_history table: upload, cleaning, and segmentation activity
+- User-specific files: data/users/<user_id>/uploads, processed, and reports
+- A local .flask_secret_key file is generated automatically for session signing.
+
+IMPORTANT
+- Keep data/app_database.sqlite3 and .flask_secret_key if you want to retain accounts and history.
+- Do not share the database or secret-key file publicly.
+- This is intended as a local/student project. A public production deployment should additionally use HTTPS, stronger operational security, backups, and rate limiting.
+- A password-reset email flow is not included in this version.

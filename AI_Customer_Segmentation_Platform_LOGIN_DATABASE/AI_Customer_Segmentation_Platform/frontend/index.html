@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>AI Customer Segmentation Platform</title>
+
+    <link rel="stylesheet"
+          href="/static/style.css">
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     HEADER
+====================================================== -->
+
+<header class="header">
+
+    <div class="header-content">
+
+        <h1>
+            AI Customer Segmentation Platform
+        </h1>
+
+        <p>
+            Intelligent Customer Analytics & Segmentation
+        </p>
+
+    </div>
+    <div class="account-actions">
+        <span id="welcomeUser">Welcome</span>
+        <a class="account-link" href="/history">My History</a>
+        <button class="logout-button" type="button" onclick="logoutUser()">Log out</button>
+    </div>
+
+</header>
+
+
+
+<!-- =====================================================
+     MAIN CONTAINER
+====================================================== -->
+
+<main class="container">
+
+
+    <!-- =================================================
+         UPLOAD SECTION
+    ================================================== -->
+
+    <section class="upload-section">
+
+        <div class="section-title">
+
+            <h2>
+                Upload Customer Dataset
+            </h2>
+
+            <p>
+                Upload a CSV or Excel dataset to begin
+                automatic customer analysis.
+            </p>
+
+        </div>
+
+
+        <div class="upload-box">
+
+            <input
+                type="file"
+                id="datasetFile"
+                accept=".csv,.xlsx,.xls,.xlsm,.ods,.tsv,.txt,.json,.jsonl,.ndjson"
+            >
+
+            <br>
+            <br>
+
+            <button
+                id="uploadButton"
+                type="button"
+                onclick="uploadDataset()">
+
+                Upload Dataset
+
+            </button>
+
+
+            <div
+                id="uploadStatus"
+                class="status">
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         BEFORE CLEANING
+    ================================================== -->
+
+    <section
+        id="analysisSection"
+        class="analysis-section hidden">
+
+        <div class="section-title">
+
+            <span class="badge">
+                BEFORE CLEANING
+            </span>
+
+            <h2>
+                Dataset Analysis
+            </h2>
+
+            <p id="datasetName">
+                Dataset information
+            </p>
+
+        </div>
+
+
+
+        <!-- =================================================
+             KPI CARDS
+        ================================================== -->
+
+        <div class="kpi-grid">
+
+
+            <div class="kpi-card">
+
+                <div class="kpi-icon">
+                    👥
+                </div>
+
+                <div>
+
+                    <h3>
+                        Total Records
+                    </h3>
+
+                    <p id="totalRows">
+                        0
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="kpi-card">
+
+                <div class="kpi-icon">
+                    📊
+                </div>
+
+                <div>
+
+                    <h3>
+                        Total Columns
+                    </h3>
+
+                    <p id="totalColumns">
+                        0
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="kpi-card warning">
+
+                <div class="kpi-icon">
+                    ⚠️
+                </div>
+
+                <div>
+
+                    <h3>
+                        Missing Values
+                    </h3>
+
+                    <p id="missingValues">
+                        0
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="kpi-card danger">
+
+                <div class="kpi-icon">
+                    🔄
+                </div>
+
+                <div>
+
+                    <h3>
+                        Duplicate Rows
+                    </h3>
+
+                    <p id="duplicateRows">
+                        0
+                    </p>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             DATASET STRUCTURE
+        ================================================== -->
+
+        <div class="dashboard-grid">
+
+
+            <div class="dashboard-card">
+
+                <div class="card-header">
+
+                    <h3>
+                        Dataset Structure
+                    </h3>
+
+                </div>
+
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Column
+                                </th>
+
+                                <th>
+                                    Data Type
+                                </th>
+
+                                <th>
+                                    Missing
+                                </th>
+
+                                <th>
+                                    Unique
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="columnTable">
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 COLUMN CLASSIFICATION
+            ================================================== -->
+
+            <div class="dashboard-card">
+
+                <div class="card-header">
+
+                    <h3>
+                        Column Classification
+                    </h3>
+
+                </div>
+
+
+                <div class="classification">
+
+
+                    <div class="classification-box">
+
+                        <h4>
+                            Numerical
+                        </h4>
+
+                        <p id="numericalCount">
+                            0
+                        </p>
+
+                    </div>
+
+
+
+                    <div class="classification-box">
+
+                        <h4>
+                            Categorical
+                        </h4>
+
+                        <p id="categoricalCount">
+                            0
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+
+
+                <div class="column-list">
+
+                    <h4>
+                        Numerical Columns
+                    </h4>
+
+                    <ul id="numericalList">
+
+                    </ul>
+
+                </div>
+
+
+
+                <div class="column-list">
+
+                    <h4>
+                        Categorical Columns
+                    </h4>
+
+                    <ul id="categoricalList">
+
+                    </ul>
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             AI DATASET INSIGHT
+        ================================================== -->
+
+        <div class="ai-insight">
+
+            <div class="ai-title">
+
+                <span>
+                    🤖
+                </span>
+
+                <h3>
+                    AI Dataset Insight
+                </h3>
+
+            </div>
+
+
+            <p id="aiInsight">
+
+                Analyzing your dataset...
+
+            </p>
+
+        </div>
+
+
+
+        <!-- =================================================
+             CLEANING BUTTON
+        ================================================== -->
+
+        <div class="next-step">
+
+            <button
+                id="cleanButton"
+                type="button"
+                onclick="startCleaning()">
+
+                Continue to AI Data Cleaning →
+
+            </button>
+
+
+            <div
+                id="cleaningStatus"
+                class="status">
+
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =================================================
+         AFTER CLEANING
+    ================================================== -->
+
+    <section
+        id="cleanedAnalysisSection"
+        class="analysis-section hidden">
+
+
+        <div class="section-title">
+
+            <span class="badge">
+                AFTER CLEANING
+            </span>
+
+            <h2>
+                Cleaned Dataset Analysis
+            </h2>
+
+            <p id="cleanedDatasetName">
+                cleaned_customers.csv
+            </p>
+
+        </div>
+
+
+
+        <!-- =================================================
+             CLEANED KPI
+        ================================================== -->
+
+        <div class="kpi-grid">
+
+
+            <div class="kpi-card">
+
+                <div class="kpi-icon">
+                    👥
+                </div>
+
+                <div>
+
+                    <h3>
+                        Cleaned Records
+                    </h3>
+
+                    <p id="cleanedRows">
+                        0
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="kpi-card">
+
+                <div class="kpi-icon">
+                    📊
+                </div>
+
+                <div>
+
+                    <h3>
+                        Columns
+                    </h3>
+
+                    <p id="cleanedColumns">
+                        0
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="kpi-card">
+
+                <div class="kpi-icon">
+                    ✅
+                </div>
+
+                <div>
+
+                    <h3>
+                        Remaining Missing
+                    </h3>
+
+                    <p id="cleanedMissing">
+                        0
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="kpi-card">
+
+                <div class="kpi-icon">
+                    🔄
+                </div>
+
+                <div>
+
+                    <h3>
+                        Remaining Duplicates
+                    </h3>
+
+                    <p id="cleanedDuplicates">
+                        0
+                    </p>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             CLEANING RESULT
+        ================================================== -->
+
+        <div class="ai-insight">
+
+            <div class="ai-title">
+
+                <span>
+                    🤖
+                </span>
+
+                <h3>
+                    AI Cleaning Result
+                </h3>
+
+            </div>
+
+
+            <p id="cleaningSummary">
+
+                AI cleaning result will appear here.
+
+            </p>
+
+
+            <p>
+
+                Remaining Missing Values:
+
+                <strong id="remainingMissing">
+                    0
+                </strong>
+
+            </p>
+
+        </div>
+
+
+
+        <!-- =================================================
+             SEGMENTATION BUTTON
+        ================================================== -->
+
+        <div class="next-step">
+
+            <button
+                id="segmentationButton"
+                type="button"
+                onclick="startSegmentation()">
+
+                Continue to AI Customer Segmentation →
+
+            </button>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =================================================
+         AI SEGMENTATION
+    ================================================== -->
+
+    <section
+        id="segmentationSection"
+        class="analysis-section hidden">
+
+
+        <div class="section-title">
+
+            <span class="badge">
+                AI SEGMENTATION
+            </span>
+
+            <h2>
+                Customer Segmentation Results
+            </h2>
+
+            <p>
+                AI-powered customer groups generated from
+                the cleaned dataset.
+            </p>
+
+        </div>
+
+
+
+        <!-- =================================================
+             SEGMENTATION KPI
+        ================================================== -->
+
+        <div class="kpi-grid">
+
+
+            <div class="kpi-card">
+
+                <div class="kpi-icon">
+                    🎯
+                </div>
+
+                <div>
+
+                    <h3>
+                        Total Segments
+                    </h3>
+
+                    <p id="segmentCount">
+                        0
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="kpi-card">
+
+                <div class="kpi-icon">
+                    👥
+                </div>
+
+                <div>
+
+                    <h3>
+                        Customers Analyzed
+                    </h3>
+
+                    <p id="segmentedCustomers">
+                        0
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="kpi-card">
+
+                <div class="kpi-icon">
+                    🤖
+                </div>
+
+                <div>
+
+                    <h3>
+                        AI Algorithm
+                    </h3>
+
+                    <p id="algorithmName">
+                        K-Means
+                    </p>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             FEATURES
+        ================================================== -->
+
+        <div class="dashboard-card">
+
+            <div class="card-header">
+
+                <h3>
+                    Features Used for Segmentation
+                </h3>
+
+            </div>
+
+
+            <div id="segmentationFeatures">
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             SEGMENT PROFILES
+        ================================================== -->
+
+        <div class="dashboard-card">
+
+            <div class="card-header">
+
+                <h3>
+                    Customer Segment Profiles
+                </h3>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Segment
+                            </th>
+
+                            <th>
+                                Customers
+                            </th>
+
+                            <th>
+                                Profile
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="segmentTable">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             SHOP OWNER BUSINESS INSIGHTS
+        ================================================== -->
+
+        <section
+            id="businessAnalyticsSection"
+            class="analysis-section hidden">
+
+            <div class="section-title">
+
+                <span class="badge">
+                    SHOP OWNER INSIGHTS
+                </span>
+
+                <h2>
+                    Customer & Product Business Analytics
+                </h2>
+
+                <p>
+                    Simple insights to understand customer loyalty,
+                    first-time visitors and best-selling products.
+                </p>
+
+            </div>
+
+
+            <!-- BUSINESS KPI CARDS -->
+
+            <div class="kpi-grid">
+
+                <div class="kpi-card">
+                    <div class="kpi-icon">👥</div>
+                    <div>
+                        <h3>Total Customers</h3>
+                        <p id="businessTotalCustomers">0</p>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon">🔁</div>
+                    <div>
+                        <h3>Regular Customers</h3>
+                        <p id="regularCustomers">N/A</p>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon">🆕</div>
+                    <div>
+                        <h3>First-Time Customers</h3>
+                        <p id="firstTimeCustomers">N/A</p>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon">💰</div>
+                    <div>
+                        <h3>Total Sales</h3>
+                        <p id="businessTotalSales">N/A</p>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon">🛒</div>
+                    <div>
+                        <h3>Average Order Value</h3>
+                        <p id="businessAOV">N/A</p>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon">📈</div>
+                    <div>
+                        <h3>Repeat Purchase Rate</h3>
+                        <p id="repeatPurchaseRate">N/A</p>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- CUSTOMER TYPE -->
+
+            <div class="dashboard-grid">
+
+                <div class="dashboard-card">
+
+                    <div class="card-header">
+                        <h3>
+                            Customer Type
+                        </h3>
+                    </div>
+
+                    <div
+                        id="customerTypeSummary"
+                        class="business-summary">
+                    </div>
+
+                </div>
+
+
+                <!-- TOP PRODUCTS -->
+
+                <div class="dashboard-card">
+
+                    <div class="card-header">
+                        <h3>
+                            Top 5 Best-Selling Products
+                        </h3>
+                    </div>
+
+                    <div
+                        id="topProducts"
+                        class="business-bars">
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PRODUCT PREFERENCE -->
+
+            <div class="dashboard-card">
+
+                <div class="card-header">
+
+                    <h3>
+                        Product Preference by Customer Type
+                    </h3>
+
+                </div>
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+                                <th>Customer Type</th>
+                                <th>Product</th>
+                                <th>Purchases</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="productPreferenceTable">
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+            <!-- BUSINESS MESSAGE -->
+
+            <div class="ai-insight">
+
+                <div class="ai-title">
+
+                    <span>
+                        💡
+                    </span>
+
+                    <h3>
+                        Shop Owner Insight
+                    </h3>
+
+                </div>
+
+                <p id="businessInsight">
+                    Business insights will appear after analysis.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             POWER BI BUTTON
+        ================================================== -->
+
+        <div class="next-step">
+
+            <button
+                id="powerBIButton"
+                type="button"
+                onclick="preparePowerBI()">
+
+                Continue to Power BI Dashboard →
+
+            </button>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =================================================
+         POWER BI DASHBOARD
+    ================================================== -->
+
+    <section
+        id="powerbiSection"
+        class="powerbi-section hidden">
+
+
+        <div class="powerbi-title">
+
+            <span class="badge">
+                POWER BI ANALYTICS
+            </span>
+
+            <h2>
+                Customer Analytics Dashboard
+            </h2>
+
+            <p>
+                Power BI dashboard generated from the
+                processed customer dataset.
+            </p>
+
+        </div>
+
+
+
+        <!-- =================================================
+             DASHBOARD IMAGE
+        ================================================== -->
+
+        <div class="powerbi-dashboard-card">
+
+
+            <div class="powerbi-dashboard-header">
+
+                <h3>
+                    Power BI Customer Analytics Dashboard
+                </h3>
+
+                <span>
+                    POWER BI
+                </span>
+
+            </div>
+
+
+            <div class="powerbi-image-container">
+
+
+                <img
+                    id="powerbiDashboardImage"
+                    src="/static/dashboard.png"
+                    alt="Power BI Customer Analytics Dashboard"
+                    class="powerbi-dashboard-image"
+                >
+
+
+                <p
+                    id="powerbiError"
+                    style="
+                        display:none;
+                        color:#dc2626;
+                        padding:20px;
+                        font-weight:600;
+                    ">
+
+                    Dashboard image not found.
+                    Please make sure the file is named
+                    dashboard.png and is inside
+                    frontend/static/.
+
+                </p>
+
+
+            </div>
+
+
+        </div>
+
+
+    </section>
+
+
+</main>
+
+
+
+<!-- =====================================================
+     FOOTER
+====================================================== -->
+
+<footer class="footer">
+
+    <p>
+        AI Customer Segmentation Platform
+        | Customer Analytics using AI and Power BI
+    </p>
+
+</footer>
+
+
+
+<!-- =====================================================
+     JAVASCRIPT
+====================================================== -->
+
+<script src="/static/script.js"></script>
+
+
+<script>
+
+/*
+=========================================================
+POWER BI IMAGE ERROR HANDLER
+=========================================================
+*/
+
+const dashboardImage =
+    document.getElementById("powerbiDashboardImage");
+
+const dashboardError =
+    document.getElementById("powerbiError");
+
+
+dashboardImage.addEventListener("error", function () {
+
+    dashboardImage.style.display = "none";
+
+    dashboardError.style.display = "block";
+
+});
+
+
+/*
+=========================================================
+POWER BI IMAGE SUCCESS
+=========================================================
+*/
+
+dashboardImage.addEventListener("load", function () {
+
+    dashboardError.style.display = "none";
+
+});
+
+
+</script>
+
+
+<script src="/static/auth.js"></script>
+</body>
+
+</html>

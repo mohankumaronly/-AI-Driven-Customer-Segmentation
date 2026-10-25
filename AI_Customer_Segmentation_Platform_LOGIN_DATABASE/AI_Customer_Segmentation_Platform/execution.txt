@@ -1,0 +1,9 @@
+step1: create a virtual environment -> python -m venv venv
+
+atep2 : run this -> Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+
+step3: activate the environment -> .\venv\Scripts\Activate.ps1
+
+if you don't want to activate again and again run this -> .\venv\Scripts\python.exe backend\app.py
+
+to run the project erite this -> python backend\app.py  
