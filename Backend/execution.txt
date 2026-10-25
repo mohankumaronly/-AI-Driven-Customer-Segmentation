@@ -15,4 +15,4 @@ Step 4: Install the required dependencies
 python -m pip install -r requirements.txt
 
 Step 5: Run the project
-python backend\app.py
+    python backend\app.py
