@@ -1,4 +1,4 @@
-step1: create a virtual environment -> python -m venv venv
+step1: create a virtual environment -> py -m venv .venv
 
 atep2 : run this -> Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
