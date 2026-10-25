@@ -1,0 +1,1485 @@
+# AI Customer Segmentation Platform
+## Backend Phase 1 — Complete Authentication Module Documentation
+
+**Technology:** Flask + Python + Neon PostgreSQL + Brevo  
+**Authentication strategy:** Cookie-based authentication  
+**API version:** `/api/v1`  
+**Scope:** Registration, email OTP verification, login, logout, forgot password, password reset, and user profile.
+
+We'll design this around your requirements rather than adding unnecessary authentication features.
+
+## 1. Final Authentication Requirements
+
+Your authentication module will work as follows:
+
+| Feature | Your requirement | Final design |
+|---|---|---|
+| Backend | Flask | Flask REST API |
+| Database | Neon | Neon-hosted PostgreSQL |
+| Registration | Username, email, password | All three required |
+| Username | Unique identity | Unique, case-insensitive username |
+| Registration verification | Two-step verification | Register first, then verify email OTP |
+| Email service | Brevo | Transactional email delivery |
+| Email verification | OTP | Six-digit OTP with five-minute expiry |
+| Login | Simple login | Username or email plus password |
+| Login OTP | Not required | No OTP during ordinary login |
+| Authentication | Cookies only | Secure, HttpOnly cookies |
+| Access token | Only access token | No separate refresh-token mechanism |
+| Access-token lifetime | Long-lived | Configurable, initially 7 days |
+| Forgot password | Email OTP | Send OTP to registered email |
+| Reset password | OTP verified first | Reset using a short-lived, single-use reset credential |
+| Database | PostgreSQL | Neon PostgreSQL |
+| Password storage | Secure hashing | Werkzeug password hashing |
+| Rate limiting | Required | Protect login, registration, and OTP endpoints |
+| API versioning | Required | `/api/v1/` |
+
+### Important security decision: Long-lived access tokens
+
+You want only an access token, without a refresh token. We can implement that.
+
+However, a long-lived access token increases the impact of a stolen cookie. Logging out or resetting a password does not automatically invalidate a stateless JWT that has already been issued.
+
+**My recommendation:** Start with a seven-day access-token lifetime, stored in a secure HttpOnly cookie. Do not make it permanent.
+
+To support immediate logout, password-reset invalidation, and account suspension, we should associate the JWT with a server-side session record and check that session on protected requests. This gives you one access token per session without requiring a refresh token.
+
+That means your design remains access-token-only while retaining server-side revocation.
+
+---
+
+# 2. How the Authentication System Will Work
+
+## 2.1 Registration and email verification
+
+The registration process will use two API calls.
+
+```text
+                USER REGISTRATION
+                       |
+                       v
+         Enter username, email, password
+                       |
+                       v
+            POST /api/v1/auth/register
+                       |
+                       v
+          Validate and store user account
+             with PENDING_VERIFICATION
+                       |
+                       v
+            Generate a secure email OTP
+                       |
+                       v
+                 Send via Brevo
+                       |
+                       v
+             User enters the OTP
+                       |
+                       v
+           POST /api/v1/auth/verify-email
+                       |
+                       v
+          Verify OTP and activate account
+                       |
+                       v
+             Registration completed
+                       |
+                       v
+                User logs in
+```
+
+### Registration rules
+
+- The username must be unique, ignoring case.
+- The email must be unique after normalization.
+- The password must be hashed before storage.
+- The user cannot access protected application features until email verification succeeds.
+- The verification OTP must expire after five minutes.
+- OTPs must be single-use.
+- Failed OTP attempts must be limited.
+- Resending an OTP must be rate-limited.
+- A failed email delivery must not leave the application believing that an email was successfully sent.
+
+For reliability, create the user and verification record transactionally, then send the email. If email delivery fails, preserve the pending account and allow a controlled resend rather than creating duplicate accounts.
+
+## 2.2 Login flow
+
+Login will not require an OTP.
+
+```text
+User enters username/email and password
+                 |
+                 v
+       POST /api/v1/auth/login
+                 |
+                 v
+     Validate credentials and account
+                 |
+                 v
+        Verify password hash
+                 |
+                 v
+      Create server-side session
+                 |
+                 v
+         Generate access JWT
+                 |
+                 v
+   Set token in HttpOnly cookie
+                 |
+                 v
+        Return user information
+                 |
+                 v
+     Access protected API endpoints
+```
+
+The backend must reject login if the account is unverified, suspended, or pending deletion.
+
+## 2.3 Forgot-password flow
+
+```text
+User enters registered email
+             |
+             v
+POST /api/v1/auth/forgot-password
+             |
+             v
+Generate password-reset OTP
+             |
+             v
+Send OTP through Brevo
+             |
+             v
+User enters OTP
+             |
+             v
+POST /api/v1/auth/verify-reset-otp
+             |
+             v
+Issue short-lived reset credential
+             |
+             v
+User enters new password
+             |
+             v
+POST /api/v1/auth/reset-password
+             |
+             v
+Update password hash
+             |
+             v
+Revoke existing sessions
+             |
+             v
+User logs in with new password
+```
+
+The reset credential is not a second login token. It is a short-lived credential restricted to password reset, and it must never authorize normal application APIs.
+
+---
+
+# 3. Complete API Endpoint List
+
+All API endpoints will use this base path:
+
+```text
+/api/v1
+```
+
+For local development:
+
+```text
+http://127.0.0.1:5000/api/v1
+```
+
+## 3.1 Authentication APIs
+
+| # | Method | Endpoint | Purpose | Authentication |
+|---:|---|---|---|---|
+| 1 | POST | `/auth/register` | Register with username, email, and password | No |
+| 2 | POST | `/auth/verify-email` | Verify registration OTP | No |
+| 3 | POST | `/auth/resend-verification-otp` | Request another verification OTP | No |
+| 4 | POST | `/auth/login` | Login using username/email and password | No |
+| 5 | POST | `/auth/logout` | End the current session and clear cookies | Current session, if present |
+| 6 | POST | `/auth/forgot-password` | Request password-reset OTP | No |
+| 7 | POST | `/auth/verify-reset-otp` | Verify password-reset OTP | No |
+| 8 | POST | `/auth/reset-password` | Set a new password using reset credential | Reset credential |
+| 9 | POST | `/auth/change-password` | Change password while logged in | Yes |
+| 10 | GET | `/auth/csrf` | Obtain the CSRF token required for cookie-authenticated requests | No |
+| 11 | GET | `/auth/status` | Check whether the current cookie represents a valid session | Cookie |
+
+## 3.2 User APIs
+
+| # | Method | Endpoint | Purpose | Authentication |
+|---:|---|---|---|---|
+| 12 | GET | `/users/me` | Retrieve current user's profile | Yes |
+| 13 | PATCH | `/users/me` | Update username or other permitted profile fields | Yes |
+| 14 | DELETE | `/users/me` | Request account deletion | Yes |
+
+This is the recommended **14-endpoint initial API contract**. We can add session management or administrative APIs later if the product needs them.
+
+### Why no refresh endpoint?
+
+You explicitly want one long-lived access token and no refresh token.
+
+Therefore, we will not create `/auth/refresh`. When the access token expires, the user logs in again.
+
+### Why include `/auth/csrf`?
+
+Cookies are sent automatically by browsers. This can expose cookie-authenticated applications to cross-site request forgery (CSRF).
+
+The CSRF endpoint provides the token that the frontend must send with protected state-changing requests. The JWT remains in an HttpOnly cookie; JavaScript cannot read it directly. The Flask JWT extension documents this cookie and double-submit CSRF approach. [Flask-JWT-Extended](https://flask-jwt-extended.readthedocs.io/en/stable/token_locations.html?utm_source=chatgpt.com)
+
+---
+
+# 4. Detailed API Contracts
+
+The following contracts are the basis for implementation and Postman testing.
+
+## API 1: Register
+
+**Method:** `POST`  
+**Endpoint:** `/api/v1/auth/register`
+
+### Request
+
+```json
+{
+  "username": "mohan_kumar",
+  "email": "mohan@example.com",
+  "password": "ExamplePassword123!"
+}
+```
+
+### Validation
+
+| Field | Rule |
+|---|---|
+| `username` | Required; 3–30 characters |
+| `username` | Letters, numbers, and underscores only |
+| `email` | Required; valid email address |
+| `password` | Required; minimum 12 characters recommended |
+| `password` | Must satisfy the configured password policy |
+
+Username comparison must be case-insensitive, so `Mohan_Kumar` and `mohan_kumar` cannot become separate accounts.
+
+The backend must normalize usernames consistently before checking uniqueness.
+
+### Successful response
+
+**HTTP:** `201 Created`
+
+```json
+{
+  "success": true,
+  "message": "Registration successful. Verify your email to continue.",
+  "data": {
+    "user": {
+      "id": "b4d0f15b-49e0-4b35-9d91-47d9e7c4c8a1",
+      "username": "mohan_kumar",
+      "email": "mohan@example.com",
+      "email_verified": false,
+      "account_status": "PENDING_VERIFICATION",
+      "created_at": "2026-10-25T09:00:00Z"
+    },
+    "verification_required": true,
+    "otp_expires_in_seconds": 300
+  }
+}
+```
+
+The ID and timestamp are illustrative.
+
+### Business rules
+
+1. Check that the username is available.
+2. Check that the email is available.
+3. Hash the password.
+4. Create the user with `PENDING_VERIFICATION`.
+5. Generate a cryptographically secure six-digit OTP.
+6. Store a protected representation of the OTP with an expiry time.
+7. Send the OTP using Brevo.
+8. Return a response that does not contain the OTP or password.
+
+Use database unique constraints as well as application checks; an application-only uniqueness check is vulnerable to concurrent registrations.
+
+### Error responses
+
+| HTTP | Meaning |
+|---|---|
+| `400` | Invalid request or validation failure |
+| `409` | Username or email conflict, according to the chosen disclosure policy |
+| `429` | Registration rate limit exceeded |
+| `500` | Unexpected server error |
+
+For account privacy, decide carefully how registration errors disclose whether an email already exists. At minimum, password-reset and OTP-resend endpoints should not reveal account existence.
+
+---
+
+## API 2: Verify Email
+
+**Method:** `POST`  
+**Endpoint:** `/api/v1/auth/verify-email`
+
+### Request
+
+```json
+{
+  "email": "mohan@example.com",
+  "otp": "483921"
+}
+```
+
+### Success response
+
+**HTTP:** `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "Email verified successfully.",
+  "data": {
+    "email_verified": true,
+    "account_status": "ACTIVE"
+  }
+}
+```
+
+### Rules
+
+- OTP must match the email and the email-verification purpose.
+- OTP must not be expired.
+- OTP must not already have been consumed.
+- Failed attempts must be limited.
+- Successful verification must consume the OTP.
+- Only a pending account should be activated through this operation.
+
+**After verification, the user logs in separately.** Verification does not automatically issue an access token in this design.
+
+---
+
+## API 3: Resend Verification OTP
+
+**Method:** `POST`  
+**Endpoint:** `/api/v1/auth/resend-verification-otp`
+
+### Request
+
+```json
+{
+  "email": "mohan@example.com"
+}
+```
+
+### Response
+
+**HTTP:** `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "If the account requires verification, an email will be sent."
+}
+```
+
+### Rules
+
+- Add a cooldown between OTP requests.
+- Apply per-IP and per-account rate limits.
+- Invalidate or supersede the previous OTP according to the OTP policy.
+- Send only when verification is still required.
+- Avoid revealing whether the account exists.
+- Do not return the OTP to the frontend.
+
+A practical initial policy is a 60-second resend cooldown, with a small limit on the number of OTP requests per hour. Tune the thresholds based on actual usage and abuse monitoring.
+
+---
+
+## API 4: Login
+
+**Method:** `POST`  
+**Endpoint:** `/api/v1/auth/login`
+
+### Request
+
+The user can enter either their username or email in the same field.
+
+```json
+{
+  "identifier": "mohan_kumar",
+  "password": "ExamplePassword123!"
+}
+```
+
+An email can also be used:
+
+```json
+{
+  "identifier": "mohan@example.com",
+  "password": "ExamplePassword123!"
+}
+```
+
+### Success response
+
+**HTTP:** `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "Login successful.",
+  "data": {
+    "user": {
+      "id": "b4d0f15b-49e0-4b35-9d91-47d9e7c4c8a1",
+      "username": "mohan_kumar",
+      "email": "mohan@example.com",
+      "email_verified": true,
+      "account_status": "ACTIVE"
+    },
+    "expires_in_seconds": 604800
+  }
+}
+```
+
+The response's `expires_in_seconds` is seven days. The actual access token is set in a cookie rather than returned in the JSON body.
+
+### Cookie behavior
+
+The backend will set a cookie similar to:
+
+```http
+Set-Cookie: access_token_cookie=<JWT>; HttpOnly; Secure; SameSite=Lax; Path=/
+```
+
+The exact attributes depend on the environment and frontend deployment. `Secure` must be enabled in production HTTPS deployments.
+
+### Login rules
+
+1. Find the account by normalized username or email.
+2. Verify the password hash.
+3. Require `email_verified = true`.
+4. Require `account_status = ACTIVE`.
+5. Apply login rate limits.
+6. Create a server-side session record.
+7. Generate an access JWT containing the user ID and session ID.
+8. Set the JWT in an HttpOnly cookie.
+9. Return user details without credentials.
+
+### Invalid credentials
+
+```json
+{
+  "success": false,
+  "message": "Invalid username/email or password."
+}
+```
+
+Use the same message for unknown users and incorrect passwords.
+
+---
+
+## API 5: Logout
+
+**Method:** `POST`  
+**Endpoint:** `/api/v1/auth/logout`
+
+### Request
+
+No JSON body is required.
+
+The browser automatically sends the authentication cookie. The frontend must also send the CSRF token.
+
+### Success response
+
+**HTTP:** `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "Logout successful."
+}
+```
+
+### Required backend actions
+
+1. Identify the current session from the verified JWT.
+2. Revoke the server-side session.
+3. Clear the authentication cookie.
+4. Clear any CSRF cookie as appropriate.
+5. Reject future protected requests that reference the revoked session.
+
+For an expired or invalid token, logout should still be able to clear the browser cookies safely.
+
+**Important:** Clearing the cookie alone is not sufficient. The server-side session must also be revoked to make the token unusable immediately.
+
+---
+
+## API 6: Forgot Password
+
+**Method:** `POST`  
+**Endpoint:** `/api/v1/auth/forgot-password`
+
+### Request
+
+```json
+{
+  "email": "mohan@example.com"
+}
+```
+
+### Response
+
+**HTTP:** `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "If an eligible account exists, password-reset instructions will be sent."
+}
+```
+
+### Backend behavior
+
+1. Normalize the email.
+2. Check whether an eligible account exists.
+3. Generate a password-reset OTP.
+4. Store its protected representation with an expiry.
+5. Send the OTP through Brevo.
+6. Enforce OTP request limits.
+
+The response must be the same whether or not the email belongs to an account.
+
+Use a separate OTP purpose for password reset. A registration OTP must never authorize password changes.
+
+---
+
+## API 7: Verify Password-Reset OTP
+
+**Method:** `POST`  
+**Endpoint:** `/api/v1/auth/verify-reset-otp`
+
+### Request
+
+```json
+{
+  "email": "mohan@example.com",
+  "otp": "583104"
+}
+```
+
+### Success response
+
+**HTTP:** `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "OTP verified successfully.",
+  "data": {
+    "reset_token": "<SHORT_LIVED_RESET_CREDENTIAL>",
+    "expires_in_seconds": 300
+  }
+}
+```
+
+The reset credential is generated by the backend and is valid only for the password-reset operation.
+
+It must not be an access token and must not authorize protected application APIs.
+
+### Rules
+
+- Verify the OTP and its purpose.
+- Check expiry and attempt limits.
+- Consume the OTP after successful verification.
+- Generate a cryptographically secure reset credential.
+- Store a hash of the reset credential in the database.
+- Make the credential single-use and short-lived.
+
+---
+
+## API 8: Reset Password
+
+**Method:** `POST`  
+**Endpoint:** `/api/v1/auth/reset-password`
+
+### Request
+
+```json
+{
+  "reset_token": "<SHORT_LIVED_RESET_CREDENTIAL>",
+  "new_password": "NewExamplePassword456!"
+}
+```
+
+### Success response
+
+**HTTP:** `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "Password reset successfully. Please log in again."
+}
+```
+
+### Backend behavior
+
+1. Hash the supplied reset credential and find its record.
+2. Check that it has not expired or been consumed.
+3. Validate the new password.
+4. Hash the new password.
+5. Update the user's password hash and password-change timestamp.
+6. Consume the reset credential.
+7. Revoke all active sessions for that user.
+8. Send a password-change notification email.
+
+The user must log in again with the new password.
+
+---
+
+## API 9: Change Password
+
+**Method:** `POST`  
+**Endpoint:** `/api/v1/auth/change-password`
+
+Authentication required: Yes.
+
+### Request
+
+```json
+{
+  "current_password": "ExamplePassword123!",
+  "new_password": "NewExamplePassword456!"
+}
+```
+
+### Success response
+
+```json
+{
+  "success": true,
+  "message": "Password changed successfully. Please log in again."
+}
+```
+
+The backend should verify the current password, hash the new password, update the database, and revoke all existing sessions. The frontend then redirects the user to login.
+
+---
+
+## API 10: CSRF Token
+
+**Method:** `GET`  
+**Endpoint:** `/api/v1/auth/csrf`
+
+This endpoint supports cookie-based authentication.
+
+### Success response
+
+```json
+{
+  "success": true,
+  "message": "CSRF token retrieved successfully.",
+  "data": {
+    "csrf_token": "<CSRF_TOKEN>"
+  }
+}
+```
+
+The exact token retrieval mechanism depends on the JWT cookie configuration. With Flask-JWT-Extended, cookie-based JWT authentication supports double-submit CSRF protection, including a CSRF token that the frontend sends in a request header. [Flask-JWT-Extended](https://flask-jwt-extended.readthedocs.io/en/stable/token_locations.html?utm_source=chatgpt.com)
+
+### Frontend behavior
+
+For protected state-changing requests, the frontend sends the CSRF token in the configured header, for example:
+
+```http
+X-CSRF-TOKEN: <CSRF_TOKEN>
+```
+
+This is **not the access token**. The access JWT remains in the HttpOnly cookie. Using a CSRF header does not change your authentication strategy to bearer-token authentication.
+
+---
+
+## API 11: Authentication Status
+
+**Method:** `GET`  
+**Endpoint:** `/api/v1/auth/status`
+
+This endpoint checks whether the current browser has a valid authenticated session.
+
+### Authenticated response
+
+```json
+{
+  "success": true,
+  "message": "Authenticated.",
+  "data": {
+    "authenticated": true,
+    "user": {
+      "id": "b4d0f15b-49e0-4b35-9d91-47d9e7c4c8a1",
+      "username": "mohan_kumar",
+      "email": "mohan@example.com"
+    }
+  }
+}
+```
+
+### Unauthenticated response
+
+```json
+{
+  "success": true,
+  "message": "Not authenticated.",
+  "data": {
+    "authenticated": false
+  }
+}
+```
+
+This endpoint is useful for frontend startup and page refresh. It must not extend the token's lifetime automatically.
+
+---
+
+# 5. User Profile APIs
+
+## API 12: Get Current User
+
+**Method:** `GET`  
+**Endpoint:** `/api/v1/users/me`
+
+Authentication required: Yes.
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "User profile retrieved successfully.",
+  "data": {
+    "id": "b4d0f15b-49e0-4b35-9d91-47d9e7c4c8a1",
+    "username": "mohan_kumar",
+    "email": "mohan@example.com",
+    "email_verified": true,
+    "account_status": "ACTIVE",
+    "created_at": "2026-10-25T09:00:00Z"
+  }
+}
+```
+
+The backend must derive the user ID from the verified JWT and its associated active session. It must not trust a user ID supplied by the frontend.
+
+## API 13: Update Current User
+
+**Method:** `PATCH`  
+**Endpoint:** `/api/v1/users/me`
+
+Authentication required: Yes.
+
+### Request
+
+```json
+{
+  "username": "mohan_dev"
+}
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Profile updated successfully.",
+  "data": {
+    "username": "mohan_dev"
+  }
+}
+```
+
+### Rules
+
+- Normalize usernames consistently.
+- Enforce the username uniqueness constraint.
+- Reject invalid characters and excessive length.
+- Do not allow updates to `email_verified`, `account_status`, `password_hash`, or internal role fields.
+- Email changes, if supported later, must require a separate email-verification process.
+
+## API 14: Request Account Deletion
+
+**Method:** `DELETE`  
+**Endpoint:** `/api/v1/users/me`
+
+Authentication required: Yes.
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Account deletion request received."
+}
+```
+
+For this project, account deletion should be a controlled lifecycle process. The backend should confirm the user's intent, revoke sessions, mark the account for deletion, and apply a documented data-retention policy.
+
+If you do not need account deletion in the first milestone, this endpoint can be deferred without blocking registration or login.
+
+---
+
+# 6. Database Design — Neon PostgreSQL
+
+We'll use Neon for development and later deployment.
+
+Neon provides standard PostgreSQL connection strings, so we can connect using SQLAlchemy and the PostgreSQL Python driver. Its documentation explains how to obtain the connection string and when to use pooled versus direct connections. [GitHub](https://github.com/neondatabase/website/blob/main/content/docs/get-started/connect-neon.md?utm_source=chatgpt.com)
+
+Official resources:
+- [Neon documentation](https://neon.com/docs/introduction?utm_source=chatgpt.com)
+- [Neon connection guide](https://github.com/neondatabase/website/blob/main/content/docs/get-started/connect-neon.md?utm_source=chatgpt.com)
+
+## 6.1 Tables required for Phase 1
+
+We'll create four tables:
+
+| Table | Responsibility |
+|---|---|
+| `users` | User identity, credentials, verification, and account status |
+| `auth_otps` | Email verification and password-reset OTP records |
+| `auth_sessions` | Access-token session tracking and revocation |
+| `password_reset_tokens` | Single-use password-reset credentials |
+
+We do not need a separate profile table initially. The username, email, and account fields can live in `users`. If the application later needs richer profile information, we can split it into a separate table.
+
+## 6.2 `users` table
+
+| Column | PostgreSQL type | Rules |
+|---|---|---|
+| `id` | UUID | Primary key |
+| `username` | VARCHAR(30) | Display username |
+| `normalized_username` | VARCHAR(30) | Unique, case-insensitive lookup |
+| `email` | VARCHAR(254) | Display email |
+| `normalized_email` | VARCHAR(254) | Unique normalized email |
+| `password_hash` | TEXT | Password hash only |
+| `email_verified` | BOOLEAN | Default `false` |
+| `account_status` | VARCHAR(30) | Pending, active, suspended, etc. |
+| `created_at` | TIMESTAMPTZ | Creation time |
+| `updated_at` | TIMESTAMPTZ | Last update |
+| `password_changed_at` | TIMESTAMPTZ | Last password change |
+
+Suggested account statuses:
+
+```text
+PENDING_VERIFICATION
+ACTIVE
+SUSPENDED
+PENDING_DELETION
+DELETED
+```
+
+### Important constraints
+
+- `id` is the primary key.
+- `normalized_username` has a unique constraint.
+- `normalized_email` has a unique constraint.
+- `password_hash` cannot be null for a password-based account.
+- Timestamps should be stored consistently, preferably in UTC.
+- The application must verify the account status during login and protected requests.
+
+Do not rely only on application-level duplicate checks. PostgreSQL constraints must enforce uniqueness even when multiple registration requests arrive simultaneously.
+
+## 6.3 `auth_otps` table
+
+| Column | Purpose |
+|---|---|
+| `id` | OTP record UUID |
+| `user_id` | Associated user, nullable for certain pre-account flows if needed |
+| `email` | Target email |
+| `purpose` | `EMAIL_VERIFICATION` or `PASSWORD_RESET` |
+| `otp_hash` | Protected representation of OTP |
+| `expires_at` | Expiration time |
+| `attempt_count` | Failed verification attempts |
+| `consumed_at` | When successfully used |
+| `created_at` | Creation time |
+
+A six-digit OTP has a small number of possible values. An ordinary fast hash alone is not sufficient protection if the database is exposed. Prefer a keyed HMAC with a secret held outside the database, short expiry, strict attempt limits, and one-time use.
+
+Never store or log OTPs in plaintext.
+
+## 6.4 `auth_sessions` table
+
+This table makes long-lived access tokens revocable.
+
+| Column | Purpose |
+|---|---|
+| `id` | Session UUID |
+| `user_id` | Session owner |
+| `created_at` | Session creation |
+| `expires_at` | Session expiration |
+| `revoked_at` | Revocation timestamp |
+| `last_used_at` | Last activity |
+| `client_label` | Optional browser/device label |
+
+The JWT contains the session ID in a claim such as `sid`.
+
+On every protected request, the backend:
+
+1. Validates the JWT signature and expiration.
+2. Extracts the user and session IDs.
+3. Confirms that the account is active.
+4. Confirms that the session exists, belongs to that user, has not expired, and has not been revoked.
+5. Authorizes the requested operation.
+
+This requires a database lookup or a carefully designed shared cache. For the first version, a database check is the simpler and safer starting point.
+
+## 6.5 `password_reset_tokens` table
+
+| Column | Purpose |
+|---|---|
+| `id` | Reset record UUID |
+| `user_id` | Account being reset |
+| `token_hash` | Hash of reset credential |
+| `expires_at` | Expiration |
+| `consumed_at` | Single-use tracking |
+| `created_at` | Creation timestamp |
+
+The reset credential must only authorize password reset. It must not be accepted by ordinary protected endpoints.
+
+---
+
+# 7. Neon Database Configuration
+
+## 7.1 Create your Neon database
+
+1. Open the official [Neon Console](https://console.neon.tech/?utm_source=chatgpt.com).
+2. Create a project for the AI Customer Segmentation backend.
+3. Create or select a database and role.
+4. Open the **Connect** dialog.
+5. Copy the PostgreSQL connection string.
+6. Keep the connection string private.
+
+Neon provides a PostgreSQL connection string in a format similar to:
+
+```text
+postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require
+```
+
+This is only a format example, not a working connection string. Use the actual value provided by your Neon project. [GitHub](https://github.com/neondatabase/website/blob/main/content/docs/get-started/connect-neon.md?utm_source=chatgpt.com)
+
+## 7.2 Add the database connection to `.env`
+
+Add the following configuration to your local `.env` file:
+
+```env
+FLASK_DEBUG=True
+
+SECRET_KEY=replace-with-a-strong-random-secret
+JWT_SECRET_KEY=replace-with-a-different-strong-random-secret
+
+DATABASE_URL=postgresql+psycopg://YOUR_USER:YOUR_PASSWORD@YOUR_HOST/YOUR_DATABASE?sslmode=require
+
+ACCESS_TOKEN_EXPIRES_SECONDS=604800
+
+BREVO_API_KEY=your-brevo-api-key
+BREVO_SENDER_EMAIL=your-verified-sender@example.com
+BREVO_SENDER_NAME=AI Customer Segmentation
+```
+
+Replace the database placeholders with the values from Neon. Preserve any required parameters supplied in its connection string, including SSL settings.
+
+Do not commit `.env` to Git.
+
+### Pooled or direct connection?
+
+- **Application runtime:** A pooled Neon connection is generally appropriate when the application may open multiple concurrent database connections.
+- **Migrations:** A direct connection can be preferable for database administration and schema migrations.
+
+Use the connection mode appropriate for the operation, and follow Neon's current connection guidance. [GitHub](https://github.com/neondatabase/website/blob/main/content/docs/get-started/connect-neon.md?utm_source=chatgpt.com)
+
+---
+
+# 8. Brevo Email Service
+
+We'll use Brevo for:
+
+1. Registration verification OTP.
+2. Password-reset OTP.
+3. Password-change notification.
+4. Optionally, a welcome email after verification.
+
+Official documentation:
+- [Brevo API documentation](https://developers.brevo.com/docs/getting-started?utm_source=chatgpt.com)
+- [Send a transactional email](https://developers.brevo.com/reference/send-transac-email?utm_source=chatgpt.com)
+
+## 8.1 Is the free plan sufficient?
+
+Brevo's published free-plan information states that the plan includes **300 email sends per day**, with the daily allowance resetting each day. Transactional emails can be queued after the limit is reached, subject to Brevo's documented queue restrictions. [help.brevo.com](https://help.brevo.com/hc/en-us/articles/208580669-FAQs-What-are-the-limits-of-the-Free-plan?gspk=NmFiNDgzNTIxYjk4\&gsxid=wo8YcEQVPUA9gn\&ps_partner_key=NmFiNDgzNTIxYjk4\&ps_xid=wo8YcEQVPUA9gn\&pscd=get.brevo.com\&utm_source=chatgpt.com)
+
+For an early development project, that may be sufficient. However, remember that verification emails, resend requests, password resets, and other transactional emails all consume the same sending allowance.
+
+We should build rate limits into our application so a malicious user cannot exhaust the daily quota by repeatedly requesting OTPs.
+
+## 8.2 Email API integration
+
+Brevo supports sending transactional email through its API. The API request uses an API key in the `api-key` header. [developers.brevo.com](https://developers.brevo.com/reference/send-transac-email?utm_source=chatgpt.com)
+
+The backend will own the integration:
+
+```text
+Flask API
+   |
+   v
+Authentication service
+   |
+   v
+Email service
+   |
+   v
+Brevo transactional email API
+   |
+   v
+User's inbox
+```
+
+The frontend must never receive the Brevo API key.
+
+## 8.3 OTP email templates
+
+**Verification email**
+
+Subject: Verify your email address
+
+```text
+Hello,
+
+Welcome to AI Customer Segmentation.
+
+Your email verification code is: {{ otp }}
+
+This code expires in 5 minutes.
+
+If you did not initiate this request, you can ignore this email.
+```
+
+**Password-reset email**
+
+Subject: Reset your password
+
+```text
+Hello,
+
+We received a request to reset your password.
+
+Your password-reset code is: {{ otp }}
+
+This code expires in 5 minutes.
+
+If you did not request this change, you can ignore this email.
+```
+
+The placeholders should be replaced on the server when rendering the message. The OTP must not be included in logs or API responses.
+
+---
+
+# 9. Dependencies for Phase 1
+
+Update your existing `requirements.txt` to include the authentication libraries:
+
+```text
+Flask
+pandas
+numpy
+scikit-learn
+openpyxl
+python-dotenv
+pytest
+
+Flask-SQLAlchemy
+Flask-Migrate
+Flask-JWT-Extended
+psycopg[binary]
+email-validator
+Flask-Limiter
+requests
+```
+
+### What each new dependency does
+
+| Package | Purpose |
+|---|---|
+| `Flask-SQLAlchemy` | SQLAlchemy database integration |
+| `Flask-Migrate` | Database migrations |
+| `Flask-JWT-Extended` | JWT creation, validation, and cookie support |
+| `psycopg[binary]` | PostgreSQL driver |
+| `email-validator` | Email format validation |
+| `Flask-Limiter` | API rate limiting |
+| `requests` | Calls the Brevo HTTP API |
+
+Install the packages in your activated virtual environment:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+Verify the main packages:
+
+```powershell
+python -m pip show Flask Flask-SQLAlchemy Flask-Migrate Flask-JWT-Extended psycopg Flask-Limiter
+```
+
+This installs the libraries; it does not yet configure the database or implement the APIs.
+
+---
+
+# 10. Cookie Authentication Configuration
+
+This section defines the exact cookie strategy we should implement.
+
+## 10.1 Access-token cookie
+
+Use these settings as the starting point:
+
+| Setting | Development | Production |
+|---|---|---|
+| Cookie name | `access_token_cookie` | `access_token_cookie` |
+| `HttpOnly` | `true` | `true` |
+| `Secure` | `false` for local HTTP only | `true` |
+| `SameSite` | `Lax` | `Lax` when deployment allows |
+| Path | `/` | `/` |
+| JWT lifetime | 7 days | 7 days initially |
+| Refresh token | Not used | Not used |
+
+The `Secure` setting must be enabled when deployed over HTTPS. If your frontend and backend are on different sites, cookie and CSRF configuration may need to change; `SameSite=None` also requires `Secure`.
+
+## 10.2 Cookie-based authentication request
+
+When the user logs in, Flask returns a `Set-Cookie` response header. The browser stores the token, and subsequent requests send the cookie automatically when cookie rules allow.
+
+For example:
+
+```http
+GET /api/v1/users/me
+Cookie: access_token_cookie=<JWT>
+```
+
+The frontend does not need to read or manually attach the JWT.
+
+For JavaScript `fetch`, include credentials when required by your deployment:
+
+```javascript
+const response = await fetch(
+    "http://127.0.0.1:5000/api/v1/users/me",
+    {
+        method: "GET",
+        credentials: "include"
+    }
+);
+```
+
+For requests that change state, send the CSRF token as well.
+
+**Important:** HttpOnly cookies reduce the risk of JavaScript stealing the token, but they do not eliminate XSS or CSRF risks. Continue to use appropriate frontend security controls and backend CSRF validation. [Flask-JWT-Extended](https://flask-jwt-extended.readthedocs.io/en/stable/token_locations.html?utm_source=chatgpt.com)
+
+## 10.3 JWT settings
+
+Configure the JWT extension with the following policy:
+
+```text
+Token location: Cookie only
+Access-token lifetime: 7 days
+Refresh-token support: Disabled
+Cookie CSRF protection: Enabled
+Issuer: ai-customer-segmentation
+Audience: ai-customer-segmentation-api
+Session ID claim: sid
+```
+
+Use a strong JWT secret that is separate from Flask's `SECRET_KEY`.
+
+A conceptual JWT payload:
+
+```json
+{
+  "sub": "b4d0f15b-49e0-4b35-9d91-47d9e7c4c8a1",
+  "sid": "session-uuid",
+  "iss": "ai-customer-segmentation",
+  "aud": "ai-customer-segmentation-api"
+}
+```
+
+The JWT extension should handle the standard issued-at and expiration claims. The backend must validate the issuer and audience, not just the signature.
+
+---
+
+# 11. Final Backend Folder Structure
+
+Keep the project modular. Your `Backend` folder should gradually evolve into this structure:
+
+```text
+Backend/
+│
+├── .venv/
+├── app.py
+├── config.py
+├── extensions.py
+├── requirements.txt
+├── .env
+├── .env.example
+├── .gitignore
+│
+├── modules/
+│   │
+│   ├── auth/
+│   │   ├── __init__.py
+│   │   ├── routes.py
+│   │   ├── service.py
+│   │   ├── schemas.py
+│   │   ├── models.py
+│   │   ├── repository.py
+│   │   └── tokens.py
+│   │
+│   ├── users/
+│   │   ├── __init__.py
+│   │   ├── routes.py
+│   │   ├── service.py
+│   │   ├── schemas.py
+│   │   ├── models.py
+│   │   └── repository.py
+│   │
+│   └── email/
+│       ├── __init__.py
+│       ├── service.py
+│       └── templates/
+│           ├── verification.html
+│           ├── password_reset.html
+│           └── password_changed.html
+│
+├── common/
+│   ├── __init__.py
+│   ├── decorators.py
+│   ├── exceptions.py
+│   ├── responses.py
+│   └── validators.py
+│
+├── routes/
+│   ├── __init__.py
+│   └── health_routes.py
+│
+├── migrations/
+│
+├── tests/
+│   ├── conftest.py
+│   ├── test_registration.py
+│   ├── test_email_verification.py
+│   ├── test_login.py
+│   ├── test_logout.py
+│   ├── test_password_reset.py
+│   ├── test_cookie_security.py
+│   └── test_users.py
+│
+├── templates/
+├── static/
+│
+├── data/
+│   ├── uploads/
+│   └── processed/
+│
+└── powerbi/
+```
+
+### Responsibilities
+
+- `app.py`: create the Flask application and register blueprints.
+- `config.py`: load environment-specific settings.
+- `extensions.py`: initialize SQLAlchemy, Flask-Migrate, JWT, and rate limiting.
+- `modules/auth/routes.py`: expose authentication endpoints.
+- `modules/auth/service.py`: registration, verification, login, logout, and password-reset business logic.
+- `modules/auth/models.py`: define authentication-related database models.
+- `modules/auth/tokens.py`: create and validate access tokens and session identifiers.
+- `modules/users/`: handle profile and account management.
+- `modules/email/service.py`: send transactional emails through Brevo.
+- `common/`: shared validation, error handling, and authorization utilities.
+- `migrations/`: database schema migration history.
+- `tests/`: automated endpoint and security tests.
+
+This is a modular monolith: one Flask application, with authentication and user management separated into modules.
+
+---
+
+# 12. Standard API Error Handling
+
+Use a consistent response structure across all authentication endpoints.
+
+### Example: validation error
+
+HTTP `400 Bad Request`
+
+```json
+{
+  "success": false,
+  "message": "Request validation failed.",
+  "errors": [
+    {
+      "field": "username",
+      "code": "INVALID_USERNAME",
+      "message": "Username must contain 3–30 permitted characters."
+    }
+  ]
+}
+```
+
+### Example: unauthenticated request
+
+HTTP `401 Unauthorized`
+
+```json
+{
+  "success": false,
+  "message": "Authentication is required."
+}
+```
+
+### Example: expired or revoked session
+
+HTTP `401 Unauthorized`
+
+```json
+{
+  "success": false,
+  "message": "Your session is invalid or has expired. Please log in again."
+}
+```
+
+### Recommended status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful request |
+| `201` | Resource created |
+| `204` | Successful request with no response body |
+| `400` | Invalid request |
+| `401` | Missing, invalid, expired, or revoked authentication |
+| `403` | Authenticated but not authorized |
+| `404` | Resource not found |
+| `409` | Username or email conflict |
+| `413` | Request too large |
+| `422` | Semantically invalid input, if used consistently |
+| `429` | Rate limit exceeded |
+| `500` | Unexpected server error |
+| `503` | A required dependency is temporarily unavailable |
+
+Do not return stack traces, database connection strings, JWT secrets, OTPs, or other sensitive implementation details to the client.
+
+---
+
+# 13. Security Rules for the Authentication Module
+
+These are mandatory implementation requirements, not optional future improvements.
+
+### Password security
+- Store password hashes, never plaintext passwords.
+- Use a suitable password-hashing algorithm.
+- Verify the password hash using the library's verification function.
+- Never log passwords.
+- Require current-password verification for authenticated password changes.
+
+### OTP security
+- Generate OTPs using a cryptographically secure random generator.
+- Set a five-minute expiration.
+- Limit failed attempts.
+- Invalidate OTPs after successful use.
+- Separate email-verification and password-reset purposes.
+- Store protected representations of OTPs rather than plaintext values.
+- Rate-limit OTP creation and verification.
+
+### Token security
+- Use an HttpOnly access-token cookie.
+- Set `Secure` in production.
+- Enable cookie CSRF protection.
+- Use short, well-defined JWT claims.
+- Verify issuer, audience, signature, and expiration.
+- Link each access token to a server-side session.
+- Check session revocation and account status on protected requests.
+- Revoke all sessions after a successful password reset.
+
+### API security
+- Validate request bodies before business logic runs.
+- Apply rate limits to public authentication endpoints.
+- Use explicit CORS origins.
+- Never trust user IDs supplied by the client for authorization.
+- Protect all state-changing cookie-authenticated requests against CSRF.
+- Keep secrets in environment variables or a secrets manager.
+- Use HTTPS in production.
+
+---
+
+# 14. Authentication Test Plan
+
+Use `pytest` and Flask's test client to verify the module.
+
+| Test | Expected result |
+|---|---|
+| Register with valid data | Account created as pending verification |
+| Register with duplicate username | Rejected |
+| Register with duplicate email | Rejected according to the defined policy |
+| Register with invalid username | Rejected |
+| Register with weak or invalid password | Rejected |
+| Verify with valid OTP | Account activated |
+| Verify with incorrect OTP | Rejected |
+| Verify with expired OTP | Rejected |
+| Reuse consumed OTP | Rejected |
+| Login with correct credentials | Access cookie issued |
+| Login with incorrect password | Rejected |
+| Login before email verification | Rejected |
+| Login to suspended account | Rejected |
+| Access `/users/me` without cookie | `401` |
+| Access `/users/me` with valid cookie | `200` |
+| Access protected API with revoked session | `401` |
+| Change state without CSRF token | Rejected |
+| Logout | Session revoked and cookies cleared |
+| Request password reset | Generic response returned |
+| Reset with valid OTP and credential | Password updated |
+| Reuse reset credential | Rejected |
+| Reset password | Existing sessions revoked |
+| Exceed login or OTP rate limits | `429` |
+
+**Definition of done:** Registration, email verification, cookie login, session revocation, password recovery, profile retrieval, and the associated security tests all work together.
+
+---
+
+# 15. Recommended Implementation Order
+
+We should implement this in small, testable steps.
+
+| Step | Task | Deliverable |
+|---:|---|---|
+| 1 | Update dependencies | Authentication packages installed |
+| 2 | Configure Neon | Database connection configured |
+| 3 | Initialize Flask extensions | SQLAlchemy, migrations, JWT, and rate limiter |
+| 4 | Create database models | `users`, `auth_otps`, `auth_sessions`, `password_reset_tokens` |
+| 5 | Create initial migration | Schema applied to Neon |
+| 6 | Implement registration | User account creation |
+| 7 | Integrate Brevo | Transactional email service |
+| 8 | Implement email verification | OTP validation and account activation |
+| 9 | Implement login | Cookie-based access JWT |
+| 10 | Implement protected routes | Authentication and session validation |
+| 11 | Implement logout | Server-side revocation and cookie clearing |
+| 12 | Implement password recovery | Forgot-password OTP and reset credential |
+| 13 | Implement user APIs | Profile retrieval and updates |
+| 14 | Implement security controls | CSRF, rate limiting, and error handling |
+| 15 | Run automated tests | Verified Phase 1 implementation |
+
+## Final decisions for Phase 1
+
+Your authentication module will use:
+
+- **Flask** for the backend.
+- **Neon PostgreSQL** for persistent storage.
+- **Brevo** for verification and password-reset emails.
+- **Username + email + password** for registration.
+- **Email OTP** for registration verification.
+- **Username or email + password** for ordinary login, without OTP.
+- **A seven-day access JWT in an HttpOnly cookie**.
+- **No refresh token and no refresh endpoint**.
+- **Server-side session records** for logout and immediate session revocation.
+- **Email OTP + a single-use reset credential** for forgot-password.
+- **CSRF protection** for cookie-authenticated state-changing requests.
+
+This gives you the authentication design you requested without introducing a refresh-token system.

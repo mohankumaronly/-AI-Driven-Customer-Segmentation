@@ -1,0 +1,15 @@
+Flask
+pandas
+numpy
+scikit-learn
+openpyxl
+python-dotenv
+pytest
+
+Flask-SQLAlchemy
+Flask-Migrate
+Flask-JWT-Extended
+psycopg[binary]
+email-validator
+Flask-Limiter
+requests
