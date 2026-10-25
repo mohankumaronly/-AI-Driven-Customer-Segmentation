@@ -1,9 +1,18 @@
-step1: create a virtual environment -> py -m venv .venv
+Step 1: Create a virtual environment
 
-atep2 : run this -> Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+powershell
+py -m venv .venv
 
-step3: activate the environment -> .\venv\Scripts\Activate.ps1
+Step 2: Set the execution policy
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
-if you don't want to activate again and again run this -> .\venv\Scripts\python.exe backend\app.py
+Step 3: Activate the virtual environment
 
-to run the project erite this -> python backend\app.py  
+powershell
+.\.venv\Scripts\Activate.ps1
+
+Step 4: Install the required dependencies
+python -m pip install -r requirements.txt
+
+Step 5: Run the project
+python backend\app.py

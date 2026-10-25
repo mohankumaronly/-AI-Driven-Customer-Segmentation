@@ -1,0 +1,59 @@
+{
+    "total_customers": 10000,
+    "number_of_segments": 2,
+    "features_used": [
+        "ID",
+        "Quantity",
+        "Price",
+        "Revenue"
+    ],
+    "best_silhouette_score": 0.7872,
+    "cluster_evaluation": [
+        {
+            "clusters": 2,
+            "silhouette_score": 0.7872
+        },
+        {
+            "clusters": 3,
+            "silhouette_score": 0.3739
+        },
+        {
+            "clusters": 4,
+            "silhouette_score": 0.412
+        },
+        {
+            "clusters": 5,
+            "silhouette_score": 0.4144
+        },
+        {
+            "clusters": 6,
+            "silhouette_score": 0.4147
+        },
+        {
+            "clusters": 7,
+            "silhouette_score": 0.3813
+        },
+        {
+            "clusters": 8,
+            "silhouette_score": 0.3738
+        }
+    ],
+    "segment_profiles": [
+        {
+            "segment": 1,
+            "customer_count": 9769,
+            "avg_ID": 5002.05,
+            "avg_Quantity": 2.62,
+            "avg_Price": 1519.07,
+            "avg_Revenue": 3896.7
+        },
+        {
+            "segment": 2,
+            "customer_count": 231,
+            "avg_ID": 4934.89,
+            "avg_Quantity": 2.66,
+            "avg_Price": 52678.69,
+            "avg_Revenue": 126513.92
+        }
+    ]
+}

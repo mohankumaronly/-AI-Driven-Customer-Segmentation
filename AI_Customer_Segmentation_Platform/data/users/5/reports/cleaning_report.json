@@ -1,0 +1,32 @@
+{
+    "status": "completed",
+    "before": {
+        "rows": 10000,
+        "columns": 10,
+        "missing_values": 0,
+        "duplicate_rows": 0
+    },
+    "cleaning_actions": {
+        "duplicate_rows_removed": 0,
+        "numerical_missing_values_filled": 0,
+        "categorical_missing_values_filled": 0,
+        "outliers_detected": 2043
+    },
+    "outlier_details": {
+        "Quantity": {
+            "outliers": 296
+        },
+        "Price": {
+            "outliers": 637
+        },
+        "Revenue": {
+            "outliers": 1110
+        }
+    },
+    "after": {
+        "rows": 10000,
+        "columns": 10,
+        "missing_values": 0,
+        "duplicate_rows": 0
+    }
+}
