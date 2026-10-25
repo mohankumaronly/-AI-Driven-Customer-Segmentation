@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | Segmind</title>
+  <link rel="preconnect" href="https://rsms.me/" />
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <link rel="stylesheet" href="/static/css/base.css" />
+  <style>
+    body { background: #f5f7fc; color: #172554; margin: 0; font-family: Inter, system-ui, sans-serif; }
+    .dash-nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 5%; background: #ffffff; border-bottom: 1px solid #e5eaf3; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; text-decoration: none; color: #172554; }
+    .brand-mark { display: grid; place-items: center; width: 32px; height: 32px; background: #4f46e5; color: white; border-radius: 8px; font-size: 16px; }
+    .logout-btn { background: transparent; border: 1px solid #e5eaf3; padding: 8px 16px; border-radius: 6px; font-weight: 700; color: #172554; cursor: pointer; transition: all 0.2s; }
+    .logout-btn:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .dash-container { max-width: 1200px; margin: 60px auto; padding: 0 20px; text-align: center; }
+    h1 { font-size: 32px; letter-spacing: -1px; margin-bottom: 16px; }
+    p { color: #64748b; margin-bottom: 32px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <header class="dash-nav">
+    <a class="brand" href="/"><span class="brand-mark">✦</span><span>Segmind</span></a>
+    <button class="logout-btn" id="logoutBtn">Log out</button>
+  </header>
+  <main class="dash-container">
+    <h1>Dashboard Works! 🎉</h1>
+    <p>You have successfully logged in. Flask securely served this page.</p>
+    <a class="btn btn-primary" href="/">Back to landing page</a>
+  </main>
+  <script>
+    document.getElementById("logoutBtn").addEventListener("click", async (e) => {
+      const btn = e.target;
+      btn.disabled = true;
+      btn.textContent = "Logging out...";
+      try {
+        const csrf = sessionStorage.getItem("segmind_csrf_token") || "";
+        await fetch("/api/v1/auth/logout", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf }
+        });
+      } catch (err) { console.error(err); }
+      sessionStorage.removeItem("segmind_csrf_token");
+      window.location.href = "/login?reason=logged_out";
+    });
+  </script>
+</body>
+</html>

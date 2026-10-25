@@ -1,0 +1,29 @@
+/* =========================================================
+   LOGIN PAGE — extends register.css
+   Only the differences live here.
+========================================================= */
+
+/* Inline row: "Remember me" + "Forgot password" */
+.field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: -4px;
+  margin-bottom: 4px;
+}
+.check-inline {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin: 0;
+}
+.check-inline input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
+/* Success notice shown after email verification redirect */
+#loginNotice {
+  margin-bottom: 16px;
+}
+#loginNotice[hidden] { display: none; }

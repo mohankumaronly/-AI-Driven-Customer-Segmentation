@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+        content="AI-powered customer segmentation platform. Upload your CSV or Excel, clean data automatically, discover segments, and explore live Power BI dashboards." />
+    <meta name="theme-color" content="#4f46e5" />
+    <title>Segmind — AI Customer Segmentation Platform</title>
+
+    <link rel="preconnect" href="https://rsms.me/" />
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <link rel="stylesheet" href="/static/css/base.css" />
+    <link rel="stylesheet" href="/static/css/landing.css" />
+</head>
+
+<body>
+
+    <!-- ============================================================
+       NAV
+  ============================================================= -->
+    <header class="nav" id="siteNav">
+        <div class="nav-inner container">
+            <a class="brand" href="#" aria-label="Segmind home">
+                <span class="brand-mark" aria-hidden="true">✦</span>
+                <span class="brand-name">Segmind</span>
+                <span class="brand-tag">BETA</span>
+            </a>
+
+            <nav class="nav-links" aria-label="Primary">
+                <a href="#features">Features</a>
+                <a href="#how">How it works</a>
+                <a href="#preview">Product</a>
+                <a href="#problem">Why Segmind</a>
+            </nav>
+
+            <div class="nav-actions" id="navActions">
+                <!-- Logged-out state (default) -->
+                <div class="nav-auth nav-guest">
+                    <a class="btn btn-ghost nav-login" href="/login">Log in</a>
+                    <a class="btn btn-primary" href="/register">Get Started <span class="arrow"
+                            aria-hidden="true">→</span></a>
+                </div>
+
+                <!-- Logged-in state (hidden until status check passes) -->
+                <div class="nav-auth nav-user" hidden>
+                    <span class="nav-user-chip" id="navUserChip" title="Signed in">
+                        <span class="nav-avatar" id="navAvatar" aria-hidden="true">M</span>
+                        <span class="nav-username" id="navUsername">—</span>
+                    </span>
+                    <a class="btn btn-ghost" href="/dashboard">Dashboard</a>
+                    <button type="button" class="btn btn-primary nav-logout" id="navLogoutBtn">
+                        <span class="btn-label">Log out</span>
+                        <span class="btn-spinner" hidden aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+
+            <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false"
+                aria-controls="mobileMenu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+
+        <div class="mobile-menu" id="mobileMenu" hidden>
+            <a href="#features">Features</a>
+            <a href="#how">How it works</a>
+            <a href="#preview">Product</a>
+            <a href="#problem">Why Segmind</a>
+            <div class="mobile-cta" id="mobileCta">
+                <!-- Logged-out (default) -->
+                <div class="nav-auth nav-guest">
+                    <a class="btn btn-ghost btn-block" href="/login">Log in</a>
+                    <a class="btn btn-primary btn-block" href="/register">Get Started</a>
+                </div>
+
+                <!-- Logged-in (hidden until status check passes) -->
+                <div class="nav-auth nav-user" hidden>
+                    <div class="mobile-user-row">
+                        <span class="nav-avatar" id="mobileAvatar" aria-hidden="true">M</span>
+                        <span class="nav-username" id="mobileUsername">—</span>
+                    </div>
+                    <a class="btn btn-ghost btn-block" href="/dashboard">Dashboard</a>
+                    <button type="button" class="btn btn-primary btn-block nav-logout" id="mobileLogoutBtn">
+                        <span class="btn-label">Log out</span>
+                        <span class="btn-spinner" hidden aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============================================================
+       HERO
+  ============================================================= -->
+    <section class="hero">
+        <div class="hero-bg" aria-hidden="true">
+            <span class="orb orb-a"></span>
+            <span class="orb orb-b"></span>
+            <span class="orb orb-c"></span>
+            <span class="grid-lines"></span>
+        </div>
+
+        <div class="container hero-grid">
+            <div class="hero-copy">
+                <span class="eyebrow"><span class="dot"></span> AI-POWERED CUSTOMER INTELLIGENCE</span>
+                <h1 class="hero-title">
+                    Turn messy customer data into
+                    <span class="grad-text">segments that actually make sense.</span>
+                </h1>
+                <p class="hero-sub">
+                    Upload a CSV or Excel file. Our AI cleans it, removes the trash rows,
+                    discovers high-value customer segments, and pushes everything into a
+                    live, interactive Power BI dashboard — no code required.
+                </p>
+
+                <div class="hero-ctas">
+                    <a class="btn btn-primary btn-lg" href="/register" id="heroPrimaryCta">
+                        Get Started <span class="arrow" aria-hidden="true">→</span>
+                    </a>
+                    <a class="btn btn-ghost btn-lg" href="#how">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M8 5v14l11-7L8 5z" fill="currentColor" />
+                        </svg>
+                        See how it works
+                    </a>
+                </div>
+
+                <ul class="hero-trust">
+                    <li><span class="tick" aria-hidden="true">✓</span> CSV &amp; Excel supported</li>
+                    <li><span class="tick" aria-hidden="true">✓</span> AI data cleaning</li>
+                    <li><span class="tick" aria-hidden="true">✓</span> Power BI native</li>
+                </ul>
+
+                <div class="hero-stats">
+                    <div class="stat">
+                        <strong class="stat-num" data-count="120">0</strong><span>K+</span>
+                        <p>Customers segmented</p>
+                    </div>
+                    <div class="stat">
+                        <strong class="stat-num" data-count="98">0</strong><span>%</span>
+                        <p>Clean-data accuracy</p>
+                    </div>
+                    <div class="stat">
+                        <strong class="stat-num" data-count="6">0</strong><span>×</span>
+                        <p>Faster insights</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hero visual: pure CSS "dashboard" mock -->
+            <div class="hero-visual" aria-hidden="true">
+                <div class="mock-frame">
+                    <div class="mock-chrome">
+                        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+                        <div class="mock-url">app.segmind.io / analysis</div>
+                    </div>
+
+                    <div class="mock-body">
+                        <aside class="mock-side">
+                            <div class="mock-side-brand">✦</div>
+                            <span class="mock-side-line active"></span>
+                            <span class="mock-side-line"></span>
+                            <span class="mock-side-line"></span>
+                            <span class="mock-side-line"></span>
+                            <span class="mock-side-line"></span>
+                        </aside>
+
+                        <div class="mock-main">
+                            <div class="mock-kpis">
+                                <div class="mock-kpi">
+                                    <span class="mock-kpi-label">Segments</span>
+                                    <strong>7</strong>
+                                    <span class="mock-kpi-trend up">▲ 12%</span>
+                                </div>
+                                <div class="mock-kpi">
+                                    <span class="mock-kpi-label">Revenue</span>
+                                    <strong>$42.8k</strong>
+                                    <span class="mock-kpi-trend up">▲ 8%</span>
+                                </div>
+                                <div class="mock-kpi">
+                                    <span class="mock-kpi-label">Churn</span>
+                                    <strong>3.4%</strong>
+                                    <span class="mock-kpi-trend down">▼ 2%</span>
+                                </div>
+                            </div>
+
+                            <div class="mock-chart">
+                                <div class="mock-chart-bars">
+                                    <span style="--h:42%"></span>
+                                    <span style="--h:64%"></span>
+                                    <span style="--h:38%"></span>
+                                    <span style="--h:82%"></span>
+                                    <span style="--h:56%"></span>
+                                    <span style="--h:74%"></span>
+                                    <span style="--h:48%"></span>
+                                    <span style="--h:88%"></span>
+                                    <span style="--h:60%"></span>
+                                    <span style="--h:70%"></span>
+                                </div>
+                                <div class="mock-chart-legend">
+                                    <span class="lg a"></span><span class="lg b"></span><span class="lg c"></span>
+                                </div>
+                            </div>
+
+                            <div class="mock-rows">
+                                <div class="mock-row"><span></span><span></span><span></span></div>
+                                <div class="mock-row"><span></span><span></span><span></span></div>
+                                <div class="mock-row"><span></span><span></span><span></span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="float-chip chip-1">
+                    <span class="chip-icon">🧹</span>
+                    <div>
+                        <strong>Cleaned</strong>
+                        <small>2,481 dupes removed</small>
+                    </div>
+                </div>
+                <div class="float-chip chip-2">
+                    <span class="chip-icon">🎯</span>
+                    <div>
+                        <strong>7 segments</strong>
+                        <small>auto-discovered</small>
+                    </div>
+                </div>
+                <div class="float-chip chip-3">
+                    <span class="chip-icon">⚡</span>
+                    <div>
+                        <strong>Ready</strong>
+                        <small>Power BI synced</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+       LOGO STRIP
+  ============================================================= -->
+    <section class="trust-strip" aria-label="Trusted by">
+        <div class="container">
+            <p class="trust-label">Trusted by data teams at forward-thinking companies</p>
+            <div class="trust-logos">
+                <span class="logo-pill">Northwind</span>
+                <span class="logo-pill">Lumina</span>
+                <span class="logo-pill">Vertex</span>
+                <span class="logo-pill">Coreware</span>
+                <span class="logo-pill">Aperture</span>
+                <span class="logo-pill">Halcyon</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+       PROBLEM → SOLUTION
+  ============================================================= -->
+    <section class="section problem" id="problem">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="eyebrow"><span class="dot"></span> THE OLD WAY IS BROKEN</span>
+                <h2>Customer data is messy. Your insights shouldn't be.</h2>
+                <p>Most teams spend 80% of their time cleaning data and 20% actually learning from it. Segmind flips
+                    that ratio.</p>
+            </div>
+
+            <div class="problem-grid">
+                <article class="problem-card reveal delay-1">
+                    <span class="problem-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 7h18M3 12h18M3 17h10" />
+                        </svg>
+                    </span>
+                    <h3>Messy CSVs</h3>
+                    <p>Duplicate rows, inconsistent dates, missing emails, mixed formats — every real dataset is a
+                        cleanup project.</p>
+                </article>
+
+                <article class="problem-card reveal delay-2">
+                    <span class="problem-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="9" />
+                            <path d="M12 7v5l3 2" />
+                        </svg>
+                    </span>
+                    <h3>Hours wasted</h3>
+                    <p>Manual cleaning in spreadsheets takes days. By the time you're done, the business question has
+                        already changed.</p>
+                </article>
+
+                <article class="problem-card reveal delay-3">
+                    <span class="problem-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19V5M4 19h16" />
+                            <path d="M8 15l3-4 3 2 4-6" />
+                        </svg>
+                    </span>
+                    <h3>Static reports</h3>
+                    <p>Dashboards nobody opens. Charts that can't answer a follow-up question. Insights trapped in a
+                        PDF.</p>
+                </article>
+            </div>
+
+            <div class="solution-banner reveal">
+                <div class="solution-inner">
+                    <span class="eyebrow on-dark"><span class="dot"></span> THE SEGMIND WAY</span>
+                    <h3>One upload. Automatic cleaning. Real segments. Live dashboards.</h3>
+                    <p>Everything happens in one flow — no exports, no re-uploading, no broken pipelines.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+       HOW IT WORKS
+  ============================================================= -->
+    <section class="section how" id="how">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="eyebrow"><span class="dot"></span> HOW IT WORKS</span>
+                <h2>From raw file to ready insights in four steps</h2>
+                <p>No data science degree. No setup. No install. Just your data doing more for you.</p>
+            </div>
+
+            <ol class="steps">
+                <li class="step reveal delay-1">
+                    <span class="step-num">01</span>
+                    <div class="step-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 3v12" />
+                            <path d="M7 8l5-5 5 5" />
+                            <path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" />
+                        </svg>
+                    </div>
+                    <h3>Upload</h3>
+                    <p>Drop a CSV or Excel file. Segmind validates the schema and previews what it sees.</p>
+                </li>
+
+                <li class="step reveal delay-2">
+                    <span class="step-num">02</span>
+                    <div class="step-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18" />
+                            <path d="M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14" />
+                            <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+                            <path d="M10 11v6M14 11v6" />
+                        </svg>
+                    </div>
+                    <h3>Clean &amp; filter</h3>
+                    <p>AI detects duplicates, outliers, and junk rows — then normalizes the fields you care about.</p>
+                </li>
+
+                <li class="step reveal delay-3">
+                    <span class="step-num">03</span>
+                    <div class="step-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="7" cy="8" r="3" />
+                            <circle cx="17" cy="8" r="3" />
+                            <circle cx="7" cy="17" r="3" />
+                            <circle cx="17" cy="17" r="3" />
+                        </svg>
+                    </div>
+                    <h3>Segment</h3>
+                    <p>RFM scoring plus clustering groups your customers by value, recency, and behavior.</p>
+                </li>
+
+                <li class="step reveal delay-4">
+                    <span class="step-num">04</span>
+                    <div class="step-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="9" rx="1.5" />
+                            <rect x="14" y="3" width="7" height="5" rx="1.5" />
+                            <rect x="14" y="12" width="7" height="9" rx="1.5" />
+                            <rect x="3" y="16" width="7" height="5" rx="1.5" />
+                        </svg>
+                    </div>
+                    <h3>Visualize</h3>
+                    <p>Open the interactive Power BI dashboard — filter, drill, and share with your team.</p>
+                </li>
+            </ol>
+        </div>
+    </section>
+
+    <!-- ============================================================
+       FEATURES
+  ============================================================= -->
+    <section class="section features" id="features">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="eyebrow"><span class="dot"></span> BUILT FOR REAL WORK</span>
+                <h2>Everything you need. Nothing you don't.</h2>
+                <p>A focused toolkit for teams that want clean data and clear answers — without a full data engineering
+                    hire.</p>
+            </div>
+
+            <div class="feature-grid">
+                <article class="feature-card reveal delay-1">
+                    <span class="feature-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 4l16 16" />
+                            <path d="M20 4L4 20" />
+                        </svg>
+                    </span>
+                    <h3>AI Data Cleaning</h3>
+                    <p>Automatic duplicate detection, null handling, and format normalization. Your dataset arrives
+                        battle-ready.</p>
+                </article>
+
+                <article class="feature-card reveal delay-2">
+                    <span class="feature-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="9" />
+                            <circle cx="12" cy="12" r="5" />
+                            <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+                        </svg>
+                    </span>
+                    <h3>Smart Segmentation</h3>
+                    <p>RFM scoring and clustering models surface your high-value, at-risk, and churned customers
+                        automatically.</p>
+                </article>
+
+                <article class="feature-card reveal delay-3">
+                    <span class="feature-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 3v18h18" />
+                            <path d="M7 15l4-6 3 3 4-7" />
+                        </svg>
+                    </span>
+                    <h3>Power BI Native</h3>
+                    <p>Every analysis opens as a live, interactive Power BI dashboard. No manual publishing, no refresh
+                        headaches.</p>
+                </article>
+
+                <article class="feature-card reveal delay-1">
+                    <span class="feature-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="4" y="10" width="16" height="11" rx="2" />
+                            <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+                        </svg>
+                    </span>
+                    <h3>Secure Sessions</h3>
+                    <p>HttpOnly JWT cookies, CSRF double-submit protection, and server-side revocation keep every
+                        session safe.</p>
+                </article>
+
+                <article class="feature-card reveal delay-2">
+                    <span class="feature-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" />
+                        </svg>
+                    </span>
+                    <h3>Fast Processing</h3>
+                    <p>Optimized pipelines handle large files smoothly — clean, segment, and render without the wait.
+                    </p>
+                </article>
+
+                <article class="feature-card reveal delay-3">
+                    <span class="feature-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 4h10l6 6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />
+                            <path d="M14 4v6h6" />
+                            <path d="M8 13h8M8 17h5" />
+                        </svg>
+                    </span>
+                    <h3>Project History</h3>
+                    <p>Every analysis is saved. Revisit old datasets, compare segments, and share dashboards with one
+                        link.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+       PRODUCT PREVIEW
+  ============================================================= -->
+    <section class="section preview" id="preview">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="eyebrow"><span class="dot"></span> SEE IT IN ACTION</span>
+                <h2>A dashboard that answers follow-up questions</h2>
+                <p>Interactive by default. Filter by segment, channel, region, or time window — the whole view updates
+                    live.</p>
+            </div>
+
+            <div class="preview-tabs reveal" role="tablist" aria-label="Product preview tabs">
+                <button class="preview-tab active" role="tab" aria-selected="true" data-tab="upload">Upload</button>
+                <button class="preview-tab" role="tab" aria-selected="false" data-tab="analysis">Analysis</button>
+                <button class="preview-tab" role="tab" aria-selected="false" data-tab="powerbi">Power BI</button>
+            </div>
+
+            <div class="preview-stage reveal delay-1">
+                <!-- UPLOAD -->
+                <div class="preview-panel active" data-panel="upload" role="tabpanel">
+                    <div class="preview-chrome">
+                        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+                        <div class="preview-url">app.segmind.io / upload</div>
+                    </div>
+                    <div class="preview-screen">
+                        <div class="upload-mock">
+                            <div class="upload-mock-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 3v12" />
+                                    <path d="M7 8l5-5 5 5" />
+                                    <path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" />
+                                </svg>
+                            </div>
+                            <h4>Drop your dataset here</h4>
+                            <p>CSV or Excel · up to 50 MB</p>
+                            <div class="upload-mock-file">
+                                <span class="file-badge">CSV</span>
+                                <div class="file-info">
+                                    <strong>customers_q4_2024.csv</strong>
+                                    <small>12,480 rows · 18 columns</small>
+                                </div>
+                                <span class="file-ok">✓</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ANALYSIS -->
+                <div class="preview-panel" data-panel="analysis" role="tabpanel">
+                    <div class="preview-chrome">
+                        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+                        <div class="preview-url">app.segmind.io / analysis</div>
+                    </div>
+                    <div class="preview-screen analysis-mock">
+                        <div class="an-kpis">
+                            <div class="an-kpi"><small>Total customers</small><strong>12,480</strong><span class="up">▲
+                                    6.2%</span></div>
+                            <div class="an-kpi"><small>Cleaned rows</small><strong>10,214</strong><span
+                                    class="up">98.1%</span></div>
+                            <div class="an-kpi"><small>Segments found</small><strong>7</strong><span
+                                    class="up">auto</span></div>
+                            <div class="an-kpi"><small>Avg. revenue</small><strong>$428</strong><span class="down">▼
+                                    1.2%</span></div>
+                        </div>
+                        <div class="an-chart">
+                            <div class="an-bars">
+                                <span style="--h:38%"></span><span style="--h:62%"></span><span style="--h:48%"></span>
+                                <span style="--h:74%"></span><span style="--h:52%"></span><span style="--h:86%"></span>
+                                <span style="--h:64%"></span><span style="--h:78%"></span><span style="--h:56%"></span>
+                                <span style="--h:92%"></span><span style="--h:66%"></span><span style="--h:72%"></span>
+                            </div>
+                        </div>
+                        <div class="an-segments">
+                            <div class="an-seg"><span class="seg-dot a"></span> Champions · 18%</div>
+                            <div class="an-seg"><span class="seg-dot b"></span> Loyal · 32%</div>
+                            <div class="an-seg"><span class="seg-dot c"></span> At-risk · 24%</div>
+                            <div class="an-seg"><span class="seg-dot d"></span> Hibernating · 26%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- POWER BI -->
+                <div class="preview-panel" data-panel="powerbi" role="tabpanel">
+                    <div class="preview-chrome">
+                        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+                        <div class="preview-url">app.powerbi.com / segmind-live</div>
+                    </div>
+                    <div class="preview-screen pbi-mock">
+                        <div class="pbi-top">
+                            <div class="pbi-card wide">
+                                <small>Revenue by segment</small>
+                                <div class="pbi-donut" aria-hidden="true">
+                                    <span class="donut-seg a"></span>
+                                    <span class="donut-seg b"></span>
+                                    <span class="donut-seg c"></span>
+                                    <span class="donut-seg d"></span>
+                                </div>
+                            </div>
+                            <div class="pbi-card">
+                                <small>Active users</small>
+                                <strong>8,942</strong>
+                                <span class="pbi-trend up">▲ 4.1%</span>
+                            </div>
+                            <div class="pbi-card">
+                                <small>Retention</small>
+                                <strong>92.4%</strong>
+                                <span class="pbi-trend up">▲ 1.8%</span>
+                            </div>
+                        </div>
+                        <div class="pbi-card line-card">
+                            <small>Revenue over time</small>
+                            <svg viewBox="0 0 400 90" preserveAspectRatio="none" aria-hidden="true">
+                                <defs>
+                                    <linearGradient id="lineGrad" x1="0" x2="0" y1="0" y2="1">
+                                        <stop offset="0%" stop-color="#4f46e5" stop-opacity=".35" />
+                                        <stop offset="100%" stop-color="#4f46e5" stop-opacity="0" />
+                                    </linearGradient>
+                                </defs>
+                                <path
+                                    d="M0,70 C40,55 70,68 110,50 C150,32 180,44 220,36 C260,28 300,50 340,32 C370,20 390,24 400,18 L400,90 L0,90 Z"
+                                    fill="url(#lineGrad)" />
+                                <path
+                                    d="M0,70 C40,55 70,68 110,50 C150,32 180,44 220,36 C260,28 300,50 340,32 C370,20 390,24 400,18"
+                                    stroke="#4f46e5" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-foot reveal delay-2">
+                <a class="btn btn-primary" href="/register" id="previewPrimaryCta">
+                    Open your dashboard <span class="arrow" aria-hidden="true">→</span>
+                </a>
+                <span class="preview-foot-note">Interactive by default — filter, drill, and share.</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+       FINAL CTA
+  ============================================================= -->
+    <section class="final-cta">
+        <div class="final-cta-bg" aria-hidden="true">
+            <span class="orb orb-a"></span>
+            <span class="orb orb-b"></span>
+        </div>
+        <div class="container final-cta-inner reveal">
+            <span class="eyebrow on-dark"><span class="dot"></span> READY WHEN YOU ARE</span>
+            <h2>Ready to understand your customers?</h2>
+            <p>Upload your first dataset and see your segments in minutes — no setup, no install.</p>
+            <form class="final-cta-form" id="ctaForm" novalidate>
+                <label class="sr-only" for="ctaEmail">Work email</label>
+                <input id="ctaEmail" type="email" name="email" placeholder="you@company.com" autocomplete="email"
+                    required />
+                <button type="submit" class="btn btn-light btn-lg">Get Started <span class="arrow"
+                        aria-hidden="true">→</span></button>
+            </form>
+            <p class="final-cta-note" id="ctaNote">2-minute setup · CSV &amp; Excel supported</p>
+        </div>
+    </section>
+
+    <!-- ============================================================
+       FOOTER
+  ============================================================= -->
+    <footer class="footer">
+        <div class="container footer-grid">
+            <div class="footer-brand">
+                <a class="brand" href="#" aria-label="Segmind home">
+                    <span class="brand-mark" aria-hidden="true">✦</span>
+                    <span class="brand-name">Segmind</span>
+                </a>
+                <p>AI-powered customer segmentation for teams that want clean data and clear answers.</p>
+            </div>
+
+            <div class="footer-col">
+                <h4>Product</h4>
+                <a href="#features">Features</a>
+                <a href="#how">How it works</a>
+                <a href="#preview">Dashboard</a>
+                <a href="#problem">Why Segmind</a>
+            </div>
+
+            <div class="footer-col">
+                <h4>Resources</h4>
+                <a href="#">Docs</a>
+                <a href="#">API reference</a>
+                <a href="#">Guides</a>
+                <a href="#">Changelog</a>
+            </div>
+
+            <div class="footer-col">
+                <h4>Company</h4>
+                <a href="#">About</a>
+                <a href="#">Careers</a>
+                <a href="#">Contact</a>
+                <a href="#">Privacy</a>
+            </div>
+        </div>
+
+        <div class="container footer-bottom">
+            <p>© <span id="year">2025</span> Segmind. All rights reserved.</p>
+            <p class="footer-built">Built with Flask · Neon PostgreSQL · Power BI</p>
+        </div>
+    </footer>
+
+    <script src="/static/js/landing.js" defer></script>
+</body>
+
+</html>
